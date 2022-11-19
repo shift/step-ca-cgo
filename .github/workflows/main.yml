@@ -25,3 +25,4 @@ jobs:
           tags: shift/step-ca-cgo:latest
           secrets: |
             "github_token=${{ secrets.GITHUB_TOKEN }}"
+          push: true
