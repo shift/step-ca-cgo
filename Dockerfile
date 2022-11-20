@@ -17,7 +17,7 @@ RUN mkdir -p src ca/bin \
         /src/bin/step-pkcs11-init \
         /src/bin/step-yubikey-init \
         /ca/bin/ \
-  && rm /step-ca_0.23.0.tar.gz ~/go /src \
+  && rm -rf /step-ca_0.23.0.tar.gz ~/go /src \
   && setcap CAP_NET_BIND_SERVICE=+eip /ca/bin/step-ca
 
 ENV STEPPATH="/data"
