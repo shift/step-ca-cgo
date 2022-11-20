@@ -1,4 +1,4 @@
-FROM docker.io/alpine:3.17
+FROM docker.io/alpine:3.16
 
 ADD https://github.com/smallstep/certificates/releases/download/v0.23.0/step-ca_0.23.0.tar.gz /
 RUN mkdir -p src ca/bin \
