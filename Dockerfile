@@ -4,8 +4,8 @@ ADD https://github.com/smallstep/certificates/releases/download/v0.23.0/step-ca_
 RUN mkdir -p src ca/bin \
   && cd src \
   && tar xfvz ../step-ca_0.23.0.tar.gz \
-  && apk --no-cache add --virtual build-dependencies build-base pkgconfig go bash curl \
-  && apk --no-cache add libcap pcsc-lite-dev \
+  && apk --no-cache add --virtual build-dependencies build-base pkgconfig go bash curl pcsc-lite-dev \
+  && apk --no-cache add libcap pcsc-lite \
   && make bootstrap \
   && go mod tidy \
   && go mod download \
@@ -18,8 +18,11 @@ RUN mkdir -p src ca/bin \
         /src/bin/step-yubikey-init \
         /ca/bin/ \
   && rm -rf /step-ca_0.23.0.tar.gz ~/go /src \
-  && setcap CAP_NET_BIND_SERVICE=+eip /ca/bin/step-ca
+  && setcap CAP_NET_BIND_SERVICE=+eip /ca/bin/step-ca \
+  && adduser -S step \
+  && chown step: /ca
 
+USER step
 ENV STEPPATH="/data"
 STOPSIGNAL SIGTERM
 ENTRYPOINT ["/ca/bin/step-ca"]
