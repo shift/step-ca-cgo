@@ -5,7 +5,7 @@ RUN mkdir -p src ca/bin \
   && cd src \
   && tar xfvz ../step-ca_0.23.0.tar.gz \
   && apk --no-cache add --virtual build-dependencies build-base pkgconfig go bash curl pcsc-lite-dev \
-  && apk --no-cache add libcap pcsc-lite \
+  && apk --no-cache add libcap pcsc-lite pcsc-lite-libs \
   && make bootstrap \
   && go mod tidy \
   && go mod download \
