@@ -63,9 +63,11 @@ jobs:
         with:
           draft: true
           prerelease: false
-          release_name: ${{ steps.version.outputs.version }}
+          release_name: "pre-release"
           tag_name: ${{ github.ref }}
-=        env:
+          body: |
+            Testing CI pipeline.
+        env:
           GITHUB_TOKEN: ${{ github.token }}
           
       - name: upload image
