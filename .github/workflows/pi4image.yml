@@ -22,6 +22,7 @@ jobs:
              quay.io/coreos/coreos-installer:release \
              download --architecture=aarch64
           unxz $(ls *.xz)
+          pwd
           LOOPDEV=$(losetup -f)
           sudo losetup -P $LOOPDEV $(ls *.raw)
           sudo partprobe $LOOPDEV
@@ -50,6 +51,8 @@ jobs:
           sudo umount /tmp/FCOSEFIpart
           sudo umount /img/p3
           sudo losetup -d ${LOOPDEV}
+          pwd
+          ls -lhart
           mv $(ls *.raw) Step-CA-FCOS-RaspberryPi4.img
           xz -9 Step-CA-FCOS-RaspberryPi4.img
           
