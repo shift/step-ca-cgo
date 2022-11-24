@@ -48,3 +48,29 @@ jobs:
           sudo rm RPi4_UEFI_Firmware_${VERSION}.zip
           popd
           sudo umount /tmp/FCOSEFIpart
+          sudo umount /mnt/p3
+          sudo losetup -d ${LOOPDEV}
+          mv *.raw Step-CA-FCOS-RaspberryPi4.img
+          xz -9 Step-CA-FCOS-RaspberryPi4.img
+          
+      - name: release
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          draft: true
+          prerelease: false
+          release_name: ${{ steps.version.outputs.version }}
+          tag_name: ${{ github.ref }}
+          body_path: CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          
+      - name: upload image
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./images/pi4/Step-CA-FCOS-RaspberryPi4.img.xz
+          asset_name: Step-CA-FCOS-RaspberryPi4.img.xz
+          asset_content_type: application/gzip
