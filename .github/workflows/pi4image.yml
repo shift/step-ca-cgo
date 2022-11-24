@@ -28,9 +28,9 @@ jobs:
           sudo mkdir -p /img/p3
           sudo mount ${LOOPDEV}p3 /img/p3
           ls -lhart /img/p3
-          mkdir /img/p3/ignition
+          sudo mkdir /img/p3/ignition
           cd images/pi4
-          podman run \
+          sudo podman run \
             -v $(pwd):/data \
             -i --rm quay.io/coreos/butane:release \
             --pretty \
