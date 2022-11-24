@@ -27,4 +27,4 @@ jobs:
           sudo partprobe $LOOPDEV
           sudo mkdir -p /img/p3
           sudo mount ${LOOPDEV}p3 /img/p3
-          ls -lhart /mnt/p3
+          ls -lhart /img/p3
