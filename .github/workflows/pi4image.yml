@@ -1,0 +1,30 @@
+name: Raspbery Pi 4 Image
+on:
+  push:
+    branches:
+      - "main"
+      - "ci"
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+      - run: |
+          podman run --pull=always --privileged --rm \
+             -v /dev:/dev -v /run/udev:/run/udev -v .:/data -w /data \
+             quay.io/coreos/coreos-installer:release \
+             download --architecture=aarch64
+          unxz $(ls *.xz)
+          LOOPDEV=$(losetup -f)
+          losetup -P $LOOPDEV $(ls *.raw)
+          partprobe $LOOPDEV
+          mkdir -p /img/p3
+          mount ${LOOPDE}p3 /img/p3
+          ls -lhart /mnt/p3
