@@ -1,11 +1,12 @@
 FROM docker.io/alpine:3.17
 
+ADD entrypoint.sh /entrypoint.sh
 ADD https://github.com/smallstep/certificates/releases/download/v0.23.0/step-ca_0.23.0.tar.gz /
 RUN mkdir -p src ca/bin \
   && cd src \
   && tar xfvz ../step-ca_0.23.0.tar.gz \
   && apk --no-cache add --virtual build-dependencies build-base pkgconfig go bash curl pcsc-lite-dev \
-  && apk --no-cache add libcap pcsc-lite pcsc-lite-libs \
+  && apk --no-cache add libcap pcsc-lite pcsc-lite-libs ccid \
   && make bootstrap \
   && go mod tidy \
   && go mod download \
@@ -25,4 +26,5 @@ RUN mkdir -p src ca/bin \
 USER step
 ENV STEPPATH="/data"
 STOPSIGNAL SIGTERM
-ENTRYPOINT ["/ca/bin/step-ca"]
+ENTRYPOINT ["/entrypoint.sh"]
+# pcscd -f -T -d
