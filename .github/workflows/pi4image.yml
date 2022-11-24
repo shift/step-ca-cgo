@@ -35,8 +35,9 @@ jobs:
             -i --rm quay.io/coreos/butane:release \
             --pretty \
             -d /data \
-            --strict < config.bu > /img/p3/ignition/config.ign
-          cp wifi.txt.example /img/p3/
+            --strict < config.bu > config.ign
+          sudo cp wifi.txt.example /img/p3/
+          sudo cp config.ign /img/p3/ignition/
           FCOSEFIPARTITION=${LOOPDEV}p2
           mkdir /tmp/FCOSEFIpart
           sudo mount $FCOSEFIPARTITION /tmp/FCOSEFIpart
