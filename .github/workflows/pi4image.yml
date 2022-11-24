@@ -50,7 +50,7 @@ jobs:
           sudo umount /tmp/FCOSEFIpart
           sudo umount /img/p3
           sudo losetup -d ${LOOPDEV}
-          mv *.raw Step-CA-FCOS-RaspberryPi4.img
+          mv $(ls *.raw) Step-CA-FCOS-RaspberryPi4.img
           xz -9 Step-CA-FCOS-RaspberryPi4.img
           
       - name: release
