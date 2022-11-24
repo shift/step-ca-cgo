@@ -1,0 +1,4 @@
+# This is used to provision the wifi adaptor if required.
+# Rename to wifi.txt o enable and adjust below values.
+SSID="Your SSID"
+PASSPHRASE="Your WiFi Password"
