@@ -23,8 +23,8 @@ jobs:
              download --architecture=aarch64
           unxz $(ls *.xz)
           LOOPDEV=$(losetup -f)
-          losetup -P $LOOPDEV $(ls *.raw)
-          partprobe $LOOPDEV
-          mkdir -p /img/p3
-          mount ${LOOPDE}p3 /img/p3
+          sudo losetup -P $LOOPDEV $(ls *.raw)
+          sudo partprobe $LOOPDEV
+          sudo mkdir -p /img/p3
+          sudo mount ${LOOPDE}p3 /img/p3
           ls -lhart /mnt/p3
