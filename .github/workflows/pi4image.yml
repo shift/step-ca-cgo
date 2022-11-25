@@ -46,7 +46,7 @@ jobs:
           mkdir /tmp/FCOSEFIpart
           sudo mount $FCOSEFIPARTITION /tmp/FCOSEFIpart
           pushd /tmp/FCOSEFIpart
-          VERSION=v1.33-8gb-d
+          VERSION=v1.33-8gb-dt
           sudo curl -LO https://github.com/shift/rpi4-uefi/releases/download/${VERSION}/RPi4_UEFI_Firmware_${VERSION}.zip
           sudo unzip RPi4_UEFI_Firmware_${VERSION}.zip
           sudo rm RPi4_UEFI_Firmware_${VERSION}.zip
