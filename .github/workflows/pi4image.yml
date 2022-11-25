@@ -4,7 +4,10 @@ on:
     branches:
       - "main"
       - "ci"
-
+permissions:
+  contents: write
+  packages: write
+  
 jobs:
   download:
     runs-on: ubuntu-latest
