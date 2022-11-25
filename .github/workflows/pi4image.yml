@@ -1,0 +1,84 @@
+name: Raspbery Pi 4 Image
+on:
+  push:
+    branches:
+      - "main"
+      - "ci"
+permissions:
+  contents: write
+  packages: write
+  
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+      - run: |
+          podman run --pull=always --privileged --rm \
+             -v /dev:/dev -v /run/udev:/run/udev -v .:/data -w /data \
+             quay.io/coreos/coreos-installer:release \
+             download --architecture=aarch64
+          unxz $(ls *.xz)
+          pwd
+          LOOPDEV=$(losetup -f)
+          sudo losetup -P $LOOPDEV $(ls *.raw)
+          sudo partprobe $LOOPDEV
+          sudo mkdir -p /img/p3
+          sudo mount ${LOOPDEV}p3 /img/p3
+          ls -lhart /img/p3
+          sudo mkdir /img/p3/ignition
+          cd images/pi4
+          sudo podman run \
+            -v $(pwd):/data \
+            -i --rm quay.io/coreos/butane:release \
+            --pretty \
+            -d /data \
+            --strict < config.bu > config.ign
+          sudo cp wifi.txt.example /img/p3/
+          sudo cp config.ign /img/p3/ignition/
+          FCOSEFIPARTITION=${LOOPDEV}p2
+          mkdir /tmp/FCOSEFIpart
+          sudo mount $FCOSEFIPARTITION /tmp/FCOSEFIpart
+          pushd /tmp/FCOSEFIpart
+          VERSION=v1.33-8gb-dt
+          sudo curl -LO https://github.com/shift/rpi4-uefi/releases/download/${VERSION}/RPi4_UEFI_Firmware_${VERSION}.zip
+          sudo unzip RPi4_UEFI_Firmware_${VERSION}.zip
+          sudo rm RPi4_UEFI_Firmware_${VERSION}.zip
+          popd
+          sudo umount /tmp/FCOSEFIpart
+          sudo umount /img/p3
+          sudo losetup -d ${LOOPDEV}
+          pwd
+          cd /home/runner/work/step-ca-cgo/step-ca-cgo
+          ls -lhart
+          mv $(ls *.raw) Step-CA-FCOS-RaspberryPi4.img
+          xz -9 Step-CA-FCOS-RaspberryPi4.img
+          
+      - name: release
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          draft: true
+          prerelease: false
+          release_name: "pre-release"
+          tag_name: ${{ github.ref }}
+          body: |
+            Testing CI pipeline.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          
+      - name: upload image
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Step-CA-FCOS-RaspberryPi4.img.xz
+          asset_name: Step-CA-FCOS-RaspberryPi4.img.xz
+          asset_content_type: application/gzip

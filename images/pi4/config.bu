@@ -1,0 +1,144 @@
+variant: fcos
+version: 1.4.0
+passwd:
+  users:
+    - name: core
+      ssh_authorized_keys:
+        - ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBGudjVmaFrNFWvUVZSGk2frMLAz1820uz0yNUp2NNKDj59SeqbwIliW3X4rpyeCKL6fvyO+xYRSNg1WaezZT3tc=
+
+storage:
+  files:
+    - path: /etc/hostname
+      mode: 0644
+      contents:
+        inline: |
+          ca
+    - path: /etc/sysconfig/nftables.conf
+      append:
+            - inline: include "/etc/nftables/custom.nft"
+    - path: /etc/nftables/custom.nft
+      contents:
+            local: nft-rules
+  links:
+    - path: /etc/alternatives/iptables
+      target: /usr/sbin/iptables-nft
+      overwrite: true
+      hard: false
+    - path: /etc/alternatives/iptables-restore
+      target: /usr/sbin/iptables-nft-restore
+      overwrite: true
+      hard: false
+    - path: /etc/alternatives/iptables-save
+      target: /usr/sbin/iptables-nft-save
+      overwrite: true
+      hard: false
+    - path: /etc/alternatives/ip6tables
+      target: /usr/sbin/ip6tables-nft
+      overwrite: true
+      hard: false
+    - path: /etc/alternatives/ip6tables-restore
+      target: /usr/sbin/ip6tables-nft-restore
+      overwrite: true
+      hard: false
+    - path: /etc/alternatives/ip6tables-save
+      target: /usr/sbin/ip6tables-nft-save
+      overwrite: true
+      hard: false
+
+systemd:
+  units:
+    - name: firstboot-wifi.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Configures WiFi if requested on first-boot.
+        After=NetworkManager.service
+        ConditionPathExists=/boot/wifi.txt
+
+        [Service]
+        Type=oneshot
+        EnvironmentFile=/boot/wifi.txt
+        PreExecStart=-/usr/bin/rpm-ostree install bcm283x-firmware.aarch64 NetworkManager-wifi.aarch64
+        PreExecStart=-/usr/bin/rpm-ostree apply-live
+        PreExecStart=-/usr/bin/systemctl restart NetworkManager
+        PreExecStart=-/usr/bin/sleep 10
+        ExecStart=/usr/bin/nmcli dev wifi connect ${SSID} password ${PASSPHRASE}
+        ExecStopPort=/usr/bin/rm /boot/wifi.txt
+
+        [Install]
+        WantedBy=multi-user.target default.target
+
+    - name: firstboot-step-ca-data-dir.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Configures step-ca data directory and ownership.
+        ConditionPathExists=/var/lib/step-ca
+
+        [Service]
+        Type=oneshot
+        PreExecStart=-/usr/bin/mkdir -p \
+                /var/lib/step-ca/config \
+                /var/lib/step-ca/certs \
+                /var/lib/step-ca/db \
+                /var/lib/step-ca/templates
+        ExecStart=/usr/bin/chown 101:root -R /var/lib/step-ca
+
+        [Install]
+        WantedBy=multi-user.target default.target
+
+
+    - name: firstboot-step-ca-init.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Configures step-ca first-boot.
+        After=NetworkManager.service
+        ConditionPathExists=/boot/ca.json
+
+        [Service]
+        Type=oneshot
+        PreExecStart=-/usr/bin/mkdir -p \
+                /var/lib/step-ca/config \
+                /var/lib/step-ca/certs \
+                /var/lib/step-ca/db \
+                /var/lib/step-ca/templates
+        ExecStart=/usr/bin/mv /boot/ca /var/lib/step-ca/config/ca.json
+        
+        [Install]
+        WantedBy=multi-user.target default.target
+
+    - name: stepca.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Step-CA Service
+        Wants=network.target
+        After=network-online.target
+
+        [Service]
+        Environment=PODMAN_SYSTEMD_UNIT=%n
+        Restart=on-failure
+        TimeoutStopSec=70
+        ExecStartPre=-/usr/bin/mkdir -p /var/lib/step-ca
+        ExecStartPre=-/usr/bin/podman pull ghcr.io/shift/step-ca-cgo:main
+        ExecStartPre=-/usr/bin/podman run --rm --name yubikey-extract-certs  -v /var/lib/step-ca:/data:Z ghcr.io/shift/step-ca-cgo:main extract
+        ExecStartPre=/bin/rm -f %t/container-step-ca.pid %t/container-step-ca.ctr-id
+        ExecStart=/usr/bin/podman run \
+            --name %n \
+            -p 443:443 \
+            --conmon-pidfile %t/container-step-ca.pid \
+            --cidfile %t/container-step-ca.ctr-id \
+            --cgroups=no-conmon \
+            -v /var/lib/step-ca:/data:Z \
+            -v /dev/bus/usb:/dev/bus/usb:Z \
+            ghcr.io/shift/step-ca-cgo:main
+        ExecStop=/usr/bin/podman stop --ignore --cidfile %t/container-step-ca.ctr-id -t 10
+        ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/container-step-ca.ctr-id
+        PIDFile=%t/container-step-ca.pid
+        #Type=forking
+        Type=simple
+
+        [Install]
+        WantedBy=multi-user.target default.target
+
