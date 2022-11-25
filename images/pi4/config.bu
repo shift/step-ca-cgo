@@ -68,6 +68,26 @@ systemd:
         [Install]
         WantedBy=multi-user.target default.target
 
+    - name: firstboot-step-ca-data-dir.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Configures step-ca data directory and ownership.
+        ConditionPathExists=/var/lib/step-ca
+
+        [Service]
+        Type=oneshot
+        PreExecStart=-/usr/bin/mkdir -p \
+                /var/lib/step-ca/config \
+                /var/lib/step-ca/certs \
+                /var/lib/step-ca/db \
+                /var/lib/step-ca/templates
+        ExecStart=/usr/bin/chown 101:root -R /var/lib/step-ca
+
+        [Install]
+        WantedBy=multi-user.target default.target
+
+
     - name: firstboot-step-ca-init.service
       enabled: true
       contents: |
@@ -102,8 +122,7 @@ systemd:
         TimeoutStopSec=70
         ExecStartPre=-/usr/bin/mkdir -p /var/lib/step-ca
         ExecStartPre=-/usr/bin/podman pull ghcr.io/shift/step-ca-cgo:main
-        ExecStartPre=-/usr/bin/podman run --rm --name step-ca-root-export --entrypoint /usr/bin/ykman -v /var/lib/step-ca:/data:Z ghcr.io/shift/step-ca-cgo:main piv certificates export 9a > /data/certs/root_ca.crt
-        ExecStartPre=-/usr/bin/podman run --rm --name step-ca-intermediate-export --entrypoint /usr/bin/ykman -v /var/lib/step-ca:/data:Z ghcr.io/shift/step-ca-cgo:main piv certificates export 9c > /data/certs/intermediate_ca.crt
+        ExecStartPre=-/usr/bin/podman run --rm --name yubikey-extract-certs  -v /var/lib/step-ca:/data:Z ghcr.io/shift/step-ca-cgo:main extract
         ExecStartPre=/bin/rm -f %t/container-step-ca.pid %t/container-step-ca.ctr-id
         ExecStart=/usr/bin/podman run \
             --name %n \
