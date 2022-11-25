@@ -102,8 +102,8 @@ systemd:
         TimeoutStopSec=70
         ExecStartPre=-/usr/bin/mkdir -p /var/lib/step-ca
         ExecStartPre=-/usr/bin/podman pull ghcr.io/shift/step-ca-cgo:main
-        ExecStartPre=-/usr/bin/podman run --entrypoint /usr/bin/ykman -v /var/lib/step-ca:/data:Z ghcr.io/shift/step-ca-cgo:main piv certificates export 9a > /data/certs/root_ca.crt
-        ExecStartPre=-/usr/bin/podman run --entrypoint /usr/bin/ykman -v /var/lib/step-ca:/data:Z ghcr.io/shift/step-ca-cgo:main piv certificates export 9c > /data/certs/intermediate_ca.crt
+        ExecStartPre=-/usr/bin/podman run --rm --name step-ca-root-export --entrypoint /usr/bin/ykman -v /var/lib/step-ca:/data:Z ghcr.io/shift/step-ca-cgo:main piv certificates export 9a > /data/certs/root_ca.crt
+        ExecStartPre=-/usr/bin/podman run --rm --name step-ca-intermediate-export --entrypoint /usr/bin/ykman -v /var/lib/step-ca:/data:Z ghcr.io/shift/step-ca-cgo:main piv certificates export 9c > /data/certs/intermediate_ca.crt
         ExecStartPre=/bin/rm -f %t/container-step-ca.pid %t/container-step-ca.ctr-id
         ExecStart=/usr/bin/podman run \
             --name %n \
