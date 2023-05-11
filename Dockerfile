@@ -1,10 +1,10 @@
 FROM docker.io/alpine:3.17
 
 ADD entrypoint.sh /entrypoint.sh
-ADD https://github.com/smallstep/certificates/releases/download/v0.23.0/step-ca_0.23.0.tar.gz /
+ADD https://github.com/smallstep/certificates/releases/download/v0.24.1/step-ca_0.24.1.tar.gz /
 RUN mkdir -p src ca/bin \
   && cd src \
-  && tar xfvz ../step-ca_0.23.0.tar.gz \
+  && tar xfvz ../step-ca_0.24.1.tar.gz \
   && apk --no-cache add --virtual build-dependencies build-base pkgconfig go bash curl pcsc-lite-dev \
   && apk --no-cache add libcap pcsc-lite pcsc-lite-libs ccid yubikey-manager \
   && make bootstrap \
