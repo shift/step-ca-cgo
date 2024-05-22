@@ -1,4 +1,4 @@
-FROM docker.io/alpine:3.18
+FROM docker.io/alpine:3.20
 
 ADD entrypoint.sh /entrypoint.sh
 ADD https://github.com/smallstep/certificates/releases/download/v0.24.1/step-ca_0.24.1.tar.gz /
